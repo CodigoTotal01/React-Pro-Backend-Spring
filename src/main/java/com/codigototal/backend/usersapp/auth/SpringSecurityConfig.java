@@ -27,6 +27,7 @@ public class SpringSecurityConfig {
     @Autowired
     private AuthenticationConfiguration authenticationConfiguration;
 
+
     @Bean
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

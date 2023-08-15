@@ -3,6 +3,7 @@ package com.codigototal.backend.usersapp.services;
 import com.codigototal.backend.usersapp.models.entities.User;
 import com.codigototal.backend.usersapp.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +15,10 @@ public class UserServiceImpl implements UserService{
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
 
     @Override
     @Transactional(readOnly = true)
@@ -27,9 +32,12 @@ public class UserServiceImpl implements UserService{
         return userRepository.findById(id);
     }
 
+
     @Override
     @Transactional
     public User save(User user) {
+        String passwordBC = passwordEncoder.encode(user.getPassword());
+        user.setPassword(passwordBC);
         return userRepository.save(user);
     }
 
