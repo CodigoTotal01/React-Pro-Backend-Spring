@@ -1,16 +1,19 @@
 package com.codigototal.backend.usersapp.auth.filters;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.codigototal.backend.usersapp.models.entities.User;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.fasterxml.jackson.core.exc.StreamReadException;
@@ -28,7 +31,7 @@ import static com.codigototal.backend.usersapp.auth.TokenJwtConfig.*;
 /*
  * SE encarga de dar el soporte a neustro programa de usar JWT para la autenticacion
  * */
-public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter{
+public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
     private AuthenticationManager authenticationManager;
 
@@ -70,14 +73,25 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         String username = ((org.springframework.security.core.userdetails.User) authResult.getPrincipal())
                 .getUsername();
 
+        //! Aqui obtendremos todos los datos registrados del usuario -grantedAuthorities para obtener los roles o el rol
+        Collection<? extends GrantedAuthority> roles = authResult.getAuthorities();
+        //!Viendo si es un admin o no
+        boolean isAdmin = roles.stream().anyMatch(role -> role.getAuthority().equals("ROLE_ADMIN"));
+
+        Claims claims = Jwts.claims();
+        //Enviar los roles como json
+
+        claims.put("authorities", new ObjectMapper().writeValueAsString(roles));
+        claims.put("isAdmin", isAdmin);
+        System.out.println(username + " : "+ isAdmin);
+
         //Implementacio real del jwt - firma del token
-
-
-        String token =  Jwts.builder()
+        String token = Jwts.builder()
                 .setSubject(username)
+                .setClaims(claims)
                 .signWith(SECRET_KEY)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date( System.currentTimeMillis() + 3600000))
+                .setExpiration(new Date(System.currentTimeMillis() + 3600000))
                 .compact();
 
         response.addHeader(HEADER_AUTHORIZATION, PREFIX_TOKEN + token);

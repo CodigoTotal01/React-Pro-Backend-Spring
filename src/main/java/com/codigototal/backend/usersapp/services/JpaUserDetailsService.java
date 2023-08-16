@@ -14,7 +14,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
+import java.util.stream.Collectors;
+//Esta clase se encarga de cargar los detalles de un usuario
+// específico para la autenticación
+// y la autorización dentro de una aplicación web.
 @Service
 public class JpaUserDetailsService implements UserDetailsService {
 
@@ -36,8 +39,10 @@ public class JpaUserDetailsService implements UserDetailsService {
         com.codigototal.backend.usersapp.models.entities.User user = usuarioOptional.orElseThrow();
 
         //Si si esxiste
-        List<GrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        List<GrantedAuthority> authorities =
+                user.getRoles()
+                        .stream()
+                        .map(role -> new SimpleGrantedAuthority(role.getName())).collect(Collectors.toList());
         return new User(user.getUsername(),
                 user.getPassword(),
                 true,

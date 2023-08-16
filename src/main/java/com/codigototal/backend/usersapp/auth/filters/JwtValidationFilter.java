@@ -1,5 +1,7 @@
 package com.codigototal.backend.usersapp.auth.filters;
 
+import com.codigototal.backend.usersapp.auth.SimpleGrantedAuthorityJsonCreator;
+import com.codigototal.backend.usersapp.models.entities.Role;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -48,11 +50,20 @@ public class JwtValidationFilter extends BasicAuthenticationFilter {
                     .setSigningKey(SECRET_KEY)
                     .build()
                     .parseClaimsJws(token).getBody();
+
+            //Obteniendo los authorities - json formato
+            Object authoritiesClaims = claims.get("authorities");
+
+
             //Obteniendo el usuario que se esta registrando -get para objetener cualquier otro pero usa el subject porfa
             String username = claims.getSubject();
 
-            List<GrantedAuthority> authorities = new ArrayList<>();
-            authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+            //poblar objeto
+            Collection<? extends GrantedAuthority> authorities = Arrays
+                    .asList(new ObjectMapper()
+                            .addMixIn(SimpleGrantedAuthority.class, SimpleGrantedAuthorityJsonCreator.class)
+                            .readValue(authoritiesClaims.toString().getBytes(),
+                            SimpleGrantedAuthority[].class));
 
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(username, null,
