@@ -43,15 +43,11 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public Optional<UserDto> findById(Long id) {
-        Optional<User> userDB = userRepository.findById(id);
-        if (userDB.isPresent()) {
-            return Optional.of(
-                    DtoMapperUser.builder()
-                            .setUser(userDB.orElseThrow())
-                            .build());
-        }
-
-        return Optional.empty();
+        return userRepository
+                .findById(id)
+                .map(user -> DtoMapperUser.builder()
+                .setUser(user)
+                .build());
     }
 
 
@@ -65,7 +61,7 @@ public class UserServiceImpl implements UserService {
 
         Optional<Role> roleOptionalBD = roleRepository.findByName("ROLE_USER");
 
-        List<Role> roles = new ArrayList<>();
+        List<Role> roles = new ArrayList<>();1
         if (roleOptionalBD.isPresent()) {
             roles.add(roleOptionalBD.orElseThrow());
         }
