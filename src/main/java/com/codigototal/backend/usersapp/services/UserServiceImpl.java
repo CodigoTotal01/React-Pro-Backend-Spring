@@ -61,7 +61,7 @@ public class UserServiceImpl implements UserService {
 
         Optional<Role> roleOptionalBD = roleRepository.findByName("ROLE_USER");
 
-        List<Role> roles = new ArrayList<>();1
+        List<Role> roles = new ArrayList<>();
         if (roleOptionalBD.isPresent()) {
             roles.add(roleOptionalBD.orElseThrow());
         }
