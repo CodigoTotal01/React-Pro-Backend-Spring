@@ -40,6 +40,9 @@ public class SpringSecurityConfig {
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http.authorizeHttpRequests()
                 .requestMatchers(HttpMethod.GET, "/users").permitAll() //sea ROLE_USER o ROLE_ADMIN
+                .requestMatchers(HttpMethod.GET, "/users/{id}").hasAnyRole("USER", "ADMIN")
+                .requestMatchers(HttpMethod.POST, "/users").hasRole("ADMIN")
+                .requestMatchers("/users/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
                 .and()
                 .addFilter(new JwtAuthenticationFilter(authenticationConfiguration.getAuthenticationManager()))
@@ -47,6 +50,5 @@ public class SpringSecurityConfig {
                 .csrf(config -> config.disable())
                 .sessionManagement(managment -> managment.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .build();
-
     }
 }
