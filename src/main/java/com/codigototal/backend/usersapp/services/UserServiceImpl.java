@@ -1,5 +1,7 @@
 package com.codigototal.backend.usersapp.services;
 
+import com.codigototal.backend.usersapp.models.dto.UserDto;
+import com.codigototal.backend.usersapp.models.dto.mapper.DtoMapperUser;
 import com.codigototal.backend.usersapp.models.entities.Role;
 import com.codigototal.backend.usersapp.models.entities.User;
 import com.codigototal.backend.usersapp.repositories.RoleRepository;
@@ -12,9 +14,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
-public class UserServiceImpl implements UserService{
+public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserRepository userRepository;
@@ -28,47 +31,61 @@ public class UserServiceImpl implements UserService{
 
     @Override
     @Transactional(readOnly = true)
-    public List<User> findAll() {
-        return (List<User>) userRepository.findAll();
+    public List<UserDto> findAll() {
+        List<User> users = (List<User>) userRepository.findAll();
+        return users.stream()
+                .map(user -> DtoMapperUser.builder()
+                        .setUser(user)
+                        .build())
+                .collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<User> findById(Long id) {
-        return userRepository.findById(id);
+    public Optional<UserDto> findById(Long id) {
+        Optional<User> userDB = userRepository.findById(id);
+        if (userDB.isPresent()) {
+            return Optional.of(
+                    DtoMapperUser.builder()
+                            .setUser(userDB.orElseThrow())
+                            .build());
+        }
+
+        return Optional.empty();
     }
 
 
     @Override
     @Transactional
-    public User save(User user) {
+    public UserDto save(User user) {
 
         String passwordBC = passwordEncoder.encode(user.getPassword());
 
         user.setPassword(passwordBC);
 
         Optional<Role> roleOptionalBD = roleRepository.findByName("ROLE_USER");
-        List<Role> roles= new ArrayList<>();
-        if(roleOptionalBD.isPresent()){
+
+        List<Role> roles = new ArrayList<>();
+        if (roleOptionalBD.isPresent()) {
             roles.add(roleOptionalBD.orElseThrow());
-        };
+        }
 
         user.setRoles(roles);
 
-        return userRepository.save(user);
+        return DtoMapperUser.builder().setUser(userRepository.save(user)).build();
     }
 
     @Override
-    public Optional<User> update(User user, Long id) {
-        Optional<User> o = this.findById(id);
+    public Optional<UserDto> update(User user, Long id) {
+        Optional<User> o = userRepository.findById(id);
         User userOptional = null;
-        if(o.isPresent()){
+        if (o.isPresent()) {
             User userDB = o.orElseThrow();
             userDB.setUsername(user.getUsername());
             userDB.setEmail(user.getEmail());
-            userOptional = this.save(userDB);
+            userOptional = userRepository.save(userDB);
         }
-        return Optional.ofNullable(userOptional);
+        return Optional.ofNullable(DtoMapperUser.builder().setUser(userOptional).build());
     }
 
     @Override

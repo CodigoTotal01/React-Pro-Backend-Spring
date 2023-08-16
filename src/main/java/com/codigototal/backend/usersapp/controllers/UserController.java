@@ -1,5 +1,6 @@
 package com.codigototal.backend.usersapp.controllers;
 
+import com.codigototal.backend.usersapp.models.dto.UserDto;
 import com.codigototal.backend.usersapp.models.entities.User;
 import com.codigototal.backend.usersapp.services.UserService;
 import jakarta.validation.Valid;
@@ -23,14 +24,14 @@ public class UserController {
     private UserService userService;
 
     @GetMapping
-    public List<User> list() {
+    public List<UserDto> list() {
         return userService.findAll();
     }
 
     //Path Variable
     @GetMapping("/{id}")
     public ResponseEntity<?> show(@PathVariable Long id) {
-        Optional<User> userOptional = userService.findById(id);
+        Optional<UserDto> userOptional = userService.findById(id);
         if (userOptional.isPresent()) {
             return ResponseEntity.ok(userOptional.orElseThrow());
         }
@@ -52,7 +53,7 @@ public class UserController {
         if(result.hasErrors()){
             return validation(result);
         }
-        Optional<User> userOld = userService.update(user, id);
+        Optional<UserDto> userOld = userService.update(user, id);
         if(userOld.isPresent()){
             return ResponseEntity.status(HttpStatus.CREATED).body(userOld.orElseThrow());
         }
@@ -63,7 +64,7 @@ public class UserController {
     @DeleteMapping("/{id}")
     public ResponseEntity<?> remove(@PathVariable Long id){
 
-        Optional<User> o = userService.findById(id);
+        Optional<UserDto> o = userService.findById(id);
 
         if(o.isPresent()){
             userService.remove(id);
